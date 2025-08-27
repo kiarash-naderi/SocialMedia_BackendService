@@ -3,7 +3,7 @@ import { minioClient } from '../../config/minio.config';
 import path from 'path';
 
 const prisma = new PrismaClient();
-const BUCKET_NAME = 'rahnama'; // تغییر از 'posts' به 'rahnama'
+const BUCKET_NAME = 'rahnama'; 
 
 async function ensureBucketExists() {
     const exists = await minioClient.bucketExists(BUCKET_NAME);

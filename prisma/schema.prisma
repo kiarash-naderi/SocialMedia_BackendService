@@ -39,7 +39,6 @@ model Post {
 model PostImage {
   id           String   @id @default(uuid()) 
   url          String
-
   post         Post     @relation(fields: [postId], references: [id])
   postId       String
 }
