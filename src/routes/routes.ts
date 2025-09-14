@@ -6,7 +6,7 @@ import { getProfileHandler, updateProfileHandler, getUserHandler } from "../modu
 import { validateProfileUpdateMiddleware, validateUsernameMiddleware } from "../modules/user/user.middleware";
 import { validateAllMiddleware, validateGetUserPostsMiddleware } from "../modules/post/post.middleware";
 import { createSetupPostHandler, getPostHandler, getUserPostsHandler } from "../modules/post/post.controller";
-import { editPostHandler } from "../modules/post/editPost/editPost.controller"; 
+import { editPostHandler } from "../modules/post/editPost/editPost.controller";
 import { bookmarkPostHandler } from "../modules/post/bookmark/bookmark.controller";
 import { followUserHandler } from "../modules/user/follow_unfollow/follow.controller";
 import { getPostProfileHandler } from "../modules/user/postProfile/postProfile.controller";
@@ -17,9 +17,15 @@ import { createCommentHandler, createReplyHandler, likeCommentHandler, getPostCo
 import { validateCreateComment, validateCreateReply, validateCommentId, validateGetPostComments } from "../utils/validators";
 import { getHomepageHandler } from "../modules/user/homepage/homepage.controller";
 import { validateHomepageMiddleware } from "../modules/user/homepage/homepage.middleware";
+import { validateBookmarkedPostsMiddleware } from "../modules/user/Bookmarked_Post/bookmarkedPost.middleware";
+import { getUserBookmarkedPostsHandler } from "../modules/user/Bookmarked_Post/bookmarkedPost.controller";
+import { getUserMentionedPostsHandler } from "../modules/user/Mentioned_Post/mentionedPost.controller";
+import { SearchByPostController } from "../modules/user/search/by_post/searchByPost.controller";
 
 const router = Router();
-//const searchByPostController = new SearchByPostController();
+
+// نمونه‌سازی کنترلر جستجو
+const searchByPostController = new SearchByPostController();
 
 // مسیرهای احراز هویت
 router.post("/register", register);
@@ -38,20 +44,16 @@ router.get("/users/:username", auth, validateUsernameMiddleware, getUserHandler)
 router.post("/posts", auth, upload.array("images", 5), validateAllMiddleware, createSetupPostHandler);
 router.get("/posts/:id", auth, getPostHandler);
 router.put("/posts/:id", auth, upload.array("images", 5), validateEditPostMiddleware, editPostHandler);
-router.get("/users/:username/posts", auth, validateGetUserPostsMiddleware, getUserPostsHandler); 
+router.get("/users/:username/posts", auth, validateGetUserPostsMiddleware, getUserPostsHandler);
 router.post("/posts/:id/bookmark", auth, bookmarkPostHandler);
 router.post("/posts/:id/like", auth, likePostHandler);
 router.post("/posts/:id/comments", auth, validateCreateComment, createCommentHandler);
 router.post("/posts/:id/comments/:commentId/reply", auth, validateCreateReply, createReplyHandler);
 router.post("/posts/:id/comments/:commentId/like", auth, validateCommentId, likeCommentHandler);
 router.get("/posts/:id/comments", auth, validateGetPostComments, getPostCommentsHandler);
-//router.delete("/posts/:id/bookmark", auth, bookmarkPostHandler);
-//router.delete("/posts/:id/like", auth, likePostHandler);
-//router.get("/posts/:id/likes", auth, getPostLikesCountHandler);
 
 // مسیرهای فالو/آنفالو
 router.post("/users/:username/follow", auth, validateUsernameMiddleware, followUserHandler);
-//router.delete("/users/:username/follow", auth, validateUsernameMiddleware, followUserHandler);
 
 // مسیرهای فالوورها و فالویینگ‌ها
 router.get("/users/followers", auth, getFollowersHandler);
@@ -60,7 +62,11 @@ router.get("/users/followings", auth, getFollowingsHandler);
 // مسیر هوم‌پیج
 router.get("/homepage", auth, validateHomepageMiddleware, getHomepageHandler);
 
+// مسیر گرفتن بوکمارک‌ها و منشن‌ها
+router.get("/bookmarks", auth, validateBookmarkedPostsMiddleware, getUserBookmarkedPostsHandler);
+router.get("/mentions", auth, validateGetUserPostsMiddleware, getUserMentionedPostsHandler);
 
-//router.get('/search/posts', authMiddleware, searchByPostController.getPostsByHashtag.bind(searchByPostController));
+// مسیر جستجو بر اساس هشتگ
+router.get("/search/posts", auth, searchByPostController.getPostsByHashtag.bind(searchByPostController));
 
 export default router;
