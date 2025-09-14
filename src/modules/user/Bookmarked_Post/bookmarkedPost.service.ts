@@ -33,15 +33,15 @@ export async function getUserBookmarkedPosts(userId: string, page: number, limit
               },
           },
       }),
-    prisma.bookmark.count({ where: { userId } }),
+    prisma.bookmark.count({ where: { userId } }) as Promise<number>,
   ]);
+
   const items = bookmarks.map((b) => ({
     bookmarkId: b.id,
     createdAt: b.createdAt.toISOString(),
     post: {
       id: b.post.id,
       caption: b.post.caption ?? null,
-      excerpt: b.post.caption ? b.post.caption.slice(0, 100) : null,
       thumbnail: b.post.images[0]?.url ?? null,
       author: {
         id: b.post.user.id,

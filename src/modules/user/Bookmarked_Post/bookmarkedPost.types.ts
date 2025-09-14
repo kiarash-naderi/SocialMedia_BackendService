@@ -10,7 +10,6 @@ export interface BookmarkedPostItemDto {
   post: {
     id: string;
     caption: string | null;
-    excerpt: string | null;
     thumbnail: string | null;
     author: BookmarkedPostAuthorDto;
   };
