@@ -1,26 +1,26 @@
-export interface BookmarkedPostAuthorDto {
+export interface MentionedPostAuthorDto {
   id: string;
   name: string | null;
   avatar: string | null;
   username: string;
 }
 
-export interface BookmarkedPostItemDto {
-  bookmarkId: string;
+export interface MentionedPostItemDto {
+  mentionId: string;
   createdAt: string;
   post: {
     id: string;
     caption: string | null;
     thumbnail: string | null;
-    author: BookmarkedPostAuthorDto;
+    author: MentionedPostAuthorDto;
   };
 }
 
-export interface BookmarkedPostsResponseDto {
+export interface MentionedPostsResponseDto {
   success: boolean;
   message: string;
   data: {
-    items: BookmarkedPostItemDto[];
+    items: MentionedPostItemDto[];
     pagination: {
       page: number;
       limit: number;
