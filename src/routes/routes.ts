@@ -1,0 +1,99 @@
+import { Router } from "express";
+import { login, register, logout, verifyEmailHandler, refreshHandler, forgotPasswordHandler, resetPasswordHandler } from "../modules/auth/auth.controller";
+import { auth, forgotPasswordLimiter } from "../modules/auth/auth.middleware";
+import { upload } from "../config/multer.config";
+import { getProfileHandler, updateProfileHandler, getUserHandler, togglePrivateProfileHandler, addCloseFriendHandler, removeCloseFriendHandler } from "../modules/user/user.controller";
+import { validateCloseFriendMiddleware, validatePrivateToggleMiddleware, validateProfileUpdateMiddleware, validateUsernameMiddleware } from "../modules/user/user.middleware";
+import { validateAllMiddleware, validateGetUserPostsMiddleware } from "../modules/post/post.middleware";
+import { createSetupPostHandler, getPostHandler, getUserPostsHandler } from "../modules/post/post.controller";
+import { editPostHandler } from "../modules/post/editPost/editPost.controller"; 
+import { bookmarkPostHandler } from "../modules/post/bookmark/bookmark.controller";
+import { followUserHandler, removeFollowerHandler } from "../modules/user/follow_unfollow/follow.controller";
+import { getPostProfileHandler } from "../modules/user/postProfile/postProfile.controller";
+import { validateEditPostMiddleware } from "../modules/post/editPost/editPost.middleware";
+import { getPostLikesCountHandler, likePostHandler } from "../modules/post/like_unlike/like.controller";
+import { getFollowersHandler, getFollowingsHandler, getUserFollowersHandler, getUserFollowingsHandler } from "../modules/user/followers_followings/followersFollowings.controller";
+import { createCommentHandler, createReplyHandler, likeCommentHandler, getPostCommentsHandler, getRepliesHandler } from "../modules/post/comment/comment.controller";
+import { validateCreateComment, validateCreateReply, validateCommentId, validateCloseFriend, validateGetPostComments } from "../utils/validators";
+import { getHomepageHandler } from "../modules/user/homepage/homepage.controller";
+import { validateHomepageMiddleware } from "../modules/user/homepage/homepage.middleware";
+import { SearchByPostController } from "../modules/user/search/by_post/searchByPost.controller";
+import { validateBookmarkedPostsMiddleware } from "../modules/user/Bookmarked_Post/bookmarkedPost.meddleware";
+import { getUserBookmarkedPostsHandler } from "../modules/user/Bookmarked_Post/bookmarkedPost.controller";
+import { getUserMentionedPostsHandler } from "../modules/user/Mentioned_Post/mentionedPost.controller";
+import { blockUserHandler, unblockUserHandler, getBlockedUsersHandler } from "../modules/user/Blocking_user/Blocked_list/Block.controller";
+import { searchByUsernameController } from "../modules/user/search/by_username/searchByUsername.controller";
+import { getCloseFriendListHandler } from "../modules/user/closeFriendList/closeFriendList.controller";
+import { validateMentionedPostsMiddleware } from "../modules/user/Mentioned_Post/mentionedPost.middleware";
+import { validateCommentIdMiddleware, validateCreateCommentMiddleware, validateCreateReplyMiddleware, validateGetPostCommentsMiddleware, validateGetRepliesMiddleware } from "../modules/post/comment/comment.middleware";
+
+const router = Router();
+const searchByPostController = new SearchByPostController();
+
+// مسیرهای احراز هویت
+router.post("/register", register);
+router.post("/login", login);
+router.post("/logout", logout);
+router.get("/verify-email", verifyEmailHandler);
+router.post("/refresh", refreshHandler);
+router.post("/forgot-password", forgotPasswordLimiter, forgotPasswordHandler);
+router.post("/reset-password", resetPasswordHandler);
+
+// مسیرهای پروفایل
+router.get("/profile", auth, getProfileHandler);
+router.put("/profile", auth, upload.single("avatar"), validateProfileUpdateMiddleware, updateProfileHandler);
+router.put("/profile/toggle-private", auth, validatePrivateToggleMiddleware, togglePrivateProfileHandler); 
+router.get("/profile/posts", auth, getPostProfileHandler);
+router.get("/user/close-friends", auth, getCloseFriendListHandler);
+
+// مسیرهای کاربر
+router.get("/users/:username", auth, validateUsernameMiddleware, getUserHandler);
+
+// مسیر های کلوز فرند
+router.post("/user/close-friends/:username", auth, validateCloseFriendMiddleware, addCloseFriendHandler);
+router.delete("/user/close-friends/:username", auth, validateCloseFriendMiddleware, removeCloseFriendHandler);
+router.get("/user/close-friends", auth, getCloseFriendListHandler);
+
+// مسیرهای پست
+router.post("/posts", auth, upload.array("images", 5), validateAllMiddleware, createSetupPostHandler);
+router.get("/posts/:id", auth, getPostHandler);
+router.put("/posts/:id", auth, upload.array("images", 5), validateEditPostMiddleware, editPostHandler);
+router.get("/users/:username/posts", auth, validateGetUserPostsMiddleware, getUserPostsHandler); 
+router.post("/posts/:id/bookmark", auth, bookmarkPostHandler);
+router.post("/posts/:id/like", auth, likePostHandler);
+router.post("/posts/:id/comments", auth, validateCreateCommentMiddleware, createCommentHandler);
+router.post("/posts/:id/comments/:commentId/reply", auth, validateCreateReplyMiddleware, createReplyHandler);
+router.post("/posts/:id/comments/:commentId/like", auth, validateCommentIdMiddleware, likeCommentHandler);
+router.get("/posts/:id/comments", auth, validateGetPostCommentsMiddleware, getPostCommentsHandler);
+router.get("/posts/:id/comments/:commentId/replies", auth, validateGetRepliesMiddleware, getRepliesHandler);
+//router.delete("/posts/:id/bookmark", auth, bookmarkPostHandler);
+//router.delete("/posts/:id/like", auth, likePostHandler);
+//router.get("/posts/:id/likes", auth, getPostLikesCountHandler);
+
+// مسیرهای فالو/آنفالو
+router.post("/users/:username/follow", auth, validateUsernameMiddleware, followUserHandler);
+//router.delete("/users/:username/follow", auth, validateUsernameMiddleware, followUserHandler);
+router.delete("/users/:username/follower", auth, validateUsernameMiddleware, removeFollowerHandler);
+
+// مسیرهای بلاک
+router.post("/users/:username/block", auth, validateUsernameMiddleware, blockUserHandler);
+router.delete("/users/:username/block", auth, validateUsernameMiddleware, unblockUserHandler);
+router.get("/user/blocked-users", auth, getBlockedUsersHandler);
+
+// مسیرهای فالوورها و فالویینگ‌ها
+router.get("/users/me/followers", auth, getFollowersHandler);
+router.get("/users/me/followings", auth, getFollowingsHandler);
+router.get("/users/:username/followers", auth, getUserFollowersHandler);
+router.get("/users/:username/followings", auth, getUserFollowingsHandler);
+
+// مسیر بوکمارک‌ها و منشن‌ها
+router.get("/bookmarks", auth, validateBookmarkedPostsMiddleware, getUserBookmarkedPostsHandler);
+router.get("/mentions", auth, validateMentionedPostsMiddleware, getUserMentionedPostsHandler);
+// مسیر هوم‌پیج
+router.get("/homepage", auth, validateHomepageMiddleware, getHomepageHandler);
+
+// مسیر های سرچ
+router.get("/search/users", auth, searchByUsernameController);
+router.get("/search/posts", auth, searchByPostController.getPostsByHashtag.bind(searchByPostController));
+
+export default router;
